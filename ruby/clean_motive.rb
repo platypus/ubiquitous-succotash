@@ -46,6 +46,20 @@ motfilein.reject!.each_with_index do |el, i|
 i > 0 && keeppts[i-1] == 0
 end
 
+motfilein.map!.each_with_index do |el, i|
+   if i > 0 
+      arr = el.split(",")
+      arr[3] = i.to_s
+      el = arr.join(",")
+   else
+      el
+   end
+end
+
+if modcsv.length != (motfilein.length - 1)
+   abort("Something broke!")
+end
+
 rotfilein = File.readlines(rotfile)
 rotfilein.reject!.each_with_index do |el, i|
 keeppts[i] == 0
