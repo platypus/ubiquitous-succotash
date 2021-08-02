@@ -1,11 +1,12 @@
 ##clean_motive.rb
 
 require 'csv'
+require 'set'
 
 ##generates array +/- 1 for point
 ##converts array back to csv
 ##checks old model for any points in array
-def rounding_error(point, modcsv)
+def rounding_error(point, modset)
    rounding = Array.new(27, point)
    rounding.map!.each_with_index do |el, i|
       a = el[0].to_i + ((i / 9.5).to_i) - 1
@@ -13,9 +14,9 @@ def rounding_error(point, modcsv)
       c = el[2].to_i + (i % 3) - 1
       el = [a,b,c].join(",")
    end
-   roundcsv = CSV.parse(rounding.join("\n"), converters: :integer)
-   roundcsv.each do |i|
-     return true if modcsv.include?(i)
+   roundset = rounding.to_set
+   roundset.each do |i|
+     return true if modset.include?(i)
    end
    return false
 end 
@@ -51,11 +52,14 @@ ARGV.clear
 modcsv = CSV.read(newmod, col_sep:" ", converters: :integer, skip_lines: /#/)
 oldcsv = CSV.read(oldmod, col_sep:" ", converters: :integer, skip_lines: /#/)
 
+modset = modcsv.to_set
+oldset = oldcsv.to_set
+
 keeppts = []
-oldcsv.each do |i|
-   if modcsv.include?(i)
+oldset.each do |i|
+   if modset.include?(i)
       keeppts.append(1)
-   elsif rounding_error(i, modcsv) 
+   elsif rounding_error(i, modset) 
       keeppts.append(1)
    else
       keeppts.append(0)
@@ -63,8 +67,9 @@ oldcsv.each do |i|
 end
 
 motfilein = File.readlines(motfile)
+puts motfilein.length
 motfilein.reject!.each_with_index do |el, i|
-i > 0 && keeppts[i-1] == 0
+	i > 0 && keeppts[i-1] == 0
 end
 
 motfilein.map!.each_with_index do |el, i|
@@ -78,6 +83,8 @@ motfilein.map!.each_with_index do |el, i|
 end
 
 if modcsv.length != (motfilein.length - 1)
+   puts modcsv.length
+   puts motfilein.length
    abort("Something broke!")
 end
 
@@ -105,4 +112,3 @@ newsumfile = sumfile.gsub("\.csv", "_clean\.csv")
 File.open(newsumfile, "w+") do |i|
 	i.puts(sumfilein)
 end
-
