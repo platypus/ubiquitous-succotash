@@ -1,7 +1,7 @@
 ##check_rotaxes.rb
 
 require 'csv'
-require 'Matrix'
+require 'matrix'
 
 ##calculate the distance between two 3D points
 def dist_3d (pt1, pt2)
@@ -18,8 +18,8 @@ def angle_3d (pt1, pt2)
 end
 
 ##generate transformation matrix from x,y,z angles and apply to point
-def translate_3d (angle, pt0)
-	angle.map! { |i| (i/180)*Math::PI }
+def translate_3d (ang, pt0)
+	angle = ang.map { |i| (i/180)*Math::PI }
 	xyz = Matrix.column_vector(pt0)
 	rotz = Matrix.rows([[Math.cos(angle[2]),-Math.sin(angle[2]),0],[Math.sin(angle[2]),Math.cos(angle[2]),0],[0,0,1]]) 
 	roty = Matrix.rows([[Math.cos(angle[1]),0,Math.sin(angle[1])],[0,1,0],[-Math.sin(angle[1]),0,Math.cos(angle[1])]])
@@ -29,10 +29,11 @@ def translate_3d (angle, pt0)
 	return i
 end
 
-if ARGV.length == 3
+if ARGV.length == 4
 	file = ARGV[0]
-	mofile = ARGV[1]
-	rofile = ARGV[2]
+	modfile = ARGV[1]
+	mofile = ARGV[2]
+	rofile = ARGV[3]
 end	
 
 ARGV.clear
@@ -47,14 +48,18 @@ ARGV.clear
 #puts "RotAxes:"
 #rofile = gets.chomp! 
 
-data = CSV.read(file, converters: :float, skip_lines: /#/)
+data = CSV.read(file, converters: :numeric, skip_lines: /#/)
+modcsv = CSV.read(modfile, col_sep:" ", converters: :numeric, skip_lines: /#/)
 
 angle = []
-
 modfilein = []
+
 data.each do |i|
 	angle.append([i[4],i[5],i[6]])
-	modfilein.append([i[1],i[2],i[3]])
+end
+
+modcsv.each do |i|
+	modfilein.append([i[0],i[1],i[2]])
 end
 
 pt0 = [0,1,0]
@@ -63,6 +68,7 @@ particley = []
 angle.each do |i|
 	particley.append(translate_3d i, pt0)
 end	
+
 
 ##find average y-rotaxis
 avgang = particley.transpose.map(&:sum) 
@@ -76,9 +82,18 @@ end
 
 avgyvar = yvariation.sum/yvariation.length
 
+##find variance and stddev
+yvariance = 0
+yvariation.each do |i|
+	yvariance += (i-avgyvar)**2
+end
+yvariance = yvariance/yvariation.length
+
+ystddev = Math.sqrt(yvariance)
+
 keeppts = []
 yvariation.each do |i|
-	if i < 6.0
+	if i < 12
 		keeppts.append(1)
 	else
 		keeppts.append(0)
@@ -94,7 +109,7 @@ particley.map! { |i|
 
 motfilein = File.readlines(mofile)
 motfilein.reject!.each_with_index do |el, i|
-i > 0 && keeppts[i-1] == 0
+	i > 0 && keeppts[i-1] == 0
 end
 
 motfilein.map!.each_with_index do |el, i|
@@ -112,29 +127,29 @@ end
 
 sumfilein = File.readlines(file)
 sumfilein.reject!.each_with_index do |el, i|
-i > 0 && keeppts[i-1] == 0
+	i > 0 && keeppts[i-1] == 0 
 end
 
 modfilein.reject!.each_with_index do |el, i|
 keeppts[i] == 0
 end
-modfilein.map! { |i| i.join("\t") }
+modfilein.map! { |i| i.join(" ") }
 
 
-newmotfile = mofile.gsub("clean_ruby\.csv", "final\.csv")
+newmotfile = mofile.gsub("\.csv", "_final\.csv")
 File.open(newmotfile, "w+") do |i|
 	i.puts(motfilein)
 end
 
-newrotfile = rofile.gsub("clean_ruby\.csv", "final\.csv")
+newrotfile = rofile.gsub("\.csv", "_final\.csv")
 File.open(newrotfile, "w+") do |i|
 	i.puts(rotfilein)
 end
 
-newmodfile = file.gsub("Summary_clean_ruby\.csv", "final\.txt")
+newmodfile = file.gsub("\.csv", "_final\.txt")
 File.write(newmodfile, modfilein.join("\n"))
 
-newsumfile = file.gsub("clean_ruby\.csv", "final\.csv")
+newsumfile = file.gsub("\.csv", "_final\.csv")
 File.open(newsumfile, "w+") do |i|
 	i.puts(sumfilein)
 end
@@ -145,5 +160,6 @@ end
 #=end
 
 puts file
-#puts avgyvar
+puts avgyvar
+puts ystddev
 #puts modfilein.length
