@@ -78,7 +78,7 @@ tempdist=[]
 modfilein.each_with_index do |el, i|
 	tempdist = []
 	(i+1..modfilein.length-1).each do |j|
-		if (el[1]-modfilein[j][1]).abs <= 64 
+		if (el[1]-modfilein[j][1]).abs <= 64 && dist_3d(el, modfilein[j]) <= 64
 			magn = dist_3d(el, modfilein[j]) 
 			ivec = el.map.with_index {|v, i| v-modfilein[j][i]}
 			vect = transpose_3d(angle[i], ivec)
