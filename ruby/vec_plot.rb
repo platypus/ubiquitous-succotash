@@ -71,7 +71,7 @@ particley = []
 
 angle.each do |i|
 	particley.append(translate_3d i, pt0)
-end	1
+end	
 
 ##measure distance to all points and save distance to nearest eight
 tempdist=[]
