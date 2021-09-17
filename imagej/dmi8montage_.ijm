@@ -74,7 +74,7 @@ setBatchMode("hide");
 
 for (i = 0; i < list.length; i++) {
 	file = input+list[i];
-	run("Image Sequence...", "open=[file] sort");
+	run("Image Sequence...", "select=[file] sort");
 }
 
 zebra = nImages;
