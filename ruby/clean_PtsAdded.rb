@@ -24,7 +24,7 @@ modcsv.each do |i|
 	modfilein.append([i[0],i[1],i[2]])
 end
 
-##measure distance to all points and save distance to nearest eight
+##measure distance to all points and set to negative value if within 5 pixels
 modfilein.each_with_index do |el, i|
 	#if (i%5000 == 0) 
 	#	puts i
@@ -32,10 +32,10 @@ modfilein.each_with_index do |el, i|
   next if el[0] <= 0
 	(i+1..modfilein.length-1).each do |j|
 		if  ((el[1]-modfilein[j][1]).abs <= 5 \
-	    	  && (el[0]-modfilein[j][0]).abs <= 5 \
-		      && (el[2]-modfilein[j][2]).abs <= 5 \
-		      && dist_3d(el, modfilein[j]) <= 4)
-			      modfilein[j] = [-10,-10,-10]
+	    	     && (el[0]-modfilein[j][0]).abs <= 5 \
+		     && (el[2]-modfilein[j][2]).abs <= 5 \
+		     && dist_3d(el, modfilein[j]) <= 5)
+			modfilein[j] = [-10,-10,-10]
 		end
 	end 
 end
