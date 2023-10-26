@@ -1,5 +1,9 @@
 #convert mrc from float to byte with automated saturation
 #change 10000 to change percent saturation
+#add alterheader -mmm ${f} if file was generated externally
+#     and does not have min/max info, requires write access
+#can convert to tif with mrc2tif -C ${b},${c} ${f} ${j}
+#add -bytes 0 to generate unsigned bytes with newstack
 
 for f in `cat floats.txt`;
 do
